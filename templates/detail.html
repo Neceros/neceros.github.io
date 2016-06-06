@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load django_markdown %}
 
-{% block head_title %}{{ title }} - {{ block.super }}{% endblock head_title %}
+{% block head_title %}{{ title|title }} - {{ block.super }}{% endblock head_title %}
 
 {% block content %}
 <div class="row">
@@ -20,6 +20,9 @@
                     400px"/>
                     {% endif %}
                     <p>{{ content.content|markdown }}</p>
+                    {% if content.tags.exists %}
+                        <p><strong>Tags:</strong> {{ content.tags.all|join:", " }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

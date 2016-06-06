@@ -2,6 +2,14 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 # HOW THE CONTENT IS FORMED/DATABASE
+# MIGRATE THE MODEL IF YOU CHANGE IT!
+
+
+class Tag(models.Model):
+    slug = models.SlugField(max_length=200, unique=True)
+
+    def __str__(self):
+        return self.slug
 
 
 class PostQuerySet(models.QuerySet):
@@ -16,18 +24,12 @@ def upload_location(content, filename):
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, )
     title = models.CharField(max_length=200)
-    height_field = models.IntegerField(default=0)
-    width_field = models.IntegerField(default=0)
-    image = models.ImageField(upload_to=upload_location,
-                              null=True,
-                              blank=True,
-                              height_field="height_field",
-                              width_field="width_field")
     content = models.TextField()
     slug = models.SlugField(max_length=200, unique=True)
     published = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    tags = models.ManyToManyField(Tag)
 
     objects = PostQuerySet.as_manager()
 
