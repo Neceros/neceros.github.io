@@ -1,2 +1,5 @@
 # neceros.github.io
-Just some shiz for my website
+
+temporary site
+
+my sheets: https://drive.google.com/drive/folders/11grvgGR1GSbSSJDyZmZhVz5WTpY7xgID?usp=share_link
