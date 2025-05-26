@@ -1,409 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fantasy RPG Dice Roller</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
-        body {
-            background-color: #f0e6d2;
-            color: #4a4a4a;
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-        }
-        .container {
-            max-width: 1200px;
-            margin-top: 20px;
-        }
-        .fantasy-border {
-            border: 2px solid #8b4513;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
-            background-color: #fff9e6;
-        }
-        .card {
-            background-color: #fff9e6;
-        }
-        .btn-primary {
-            background-color: #4b0082;
-            border-color: #4b0082;
-            margin: 2px;
-        }
-        .btn-primary:hover {
-            background-color: #8b008b;
-            border-color: #8b008b;
-        }
-        .btn-success {
-            background-color: #006400;
-            border-color: #006400;
-        }
-        .btn-success:hover {
-            background-color: #008000;
-            border-color: #008000;
-        }
-        #result {
-            font-size: 1.2em;
-        }
-        .discarded {
-            text-decoration: line-through;
-            color: #6c757d;
-        }
-        .min-roll {
-            color: #dc3545;
-        }
-        .max-roll {
-            color: #28a745;
-        }
-        .result-divider {
-            border-top: 1px solid #8b4513;
-            margin: 10px 0;
-        }
-        .dice-group {
-            margin-bottom: 15px;
-        }
-        .dice-group-label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 1.1em;
-        }
-        .clear-results {
-            float: right;
-            cursor: pointer;
-            color: #dc3545;
-        }
-        .specialty-ops {
-            background-color: #fff9e6;
-            border: 1px solid #8b4513;
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 15px;
-        }
-        .specialty-ops h6 {
-            color: #4b0082;
-            margin-bottom: 10px;
-        }
-        .specialty-ops ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .specialty-ops li {
-            margin-bottom: 5px;
-        }
+      body {
+        background-color: #f0e6d2;
+        color: #4a4a4a;
+        font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      }
+      .container {
+        max-width: 1200px;
+        margin-top: 20px;
+      }
+      .fantasy-border {
+        border: 2px solid #8b4513;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
+        background-color: #fff9e6;
+      }
+      .card {
+        background-color: #fff9e6;
+      }
+      .btn-primary {
+        background-color: #4b0082;
+        border-color: #4b0082;
+        margin: 2px;
+      }
+      .btn-primary:hover {
+        background-color: #8b008b;
+        border-color: #8b008b;
+      }
+      .btn-success {
+        background-color: #006400;
+        border-color: #006400;
+      }
+      .btn-success:hover {
+        background-color: #008000;
+        border-color: #008000;
+      }
+      #result {
+        font-size: 1.2em;
+      }
+      .discarded {
+        text-decoration: line-through;
+        color: #6c757d;
+      }
+      .min-roll {
+        color: #dc3545;
+      }
+      .max-roll {
+        color: #28a745;
+      }
+      .result-divider {
+        border-top: 1px solid #8b4513;
+        margin: 10px 0;
+      }
+      .dice-group {
+        margin-bottom: 15px;
+      }
+      .dice-group-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 1.1em;
+      }
+      .clear-results {
+        float: right;
+        cursor: pointer;
+        color: #dc3545;
+      }
+      .specialty-ops {
+        background-color: #fff9e6;
+        border: 1px solid #8b4513;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+      }
+      .specialty-ops h6 {
+        color: #4b0082;
+        margin-bottom: 10px;
+      }
+      .specialty-ops ul {
+        list-style-type: none;
+        padding-left: 0;
+      }
+      .specialty-ops li {
+        margin-bottom: 5px;
+      }
+      #previous-rolls-list {
+        max-height: 300px;
+        overflow-y: auto;
+}
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1 class="text-center mb-4">Fantasy RPG Dice Roller</h1>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card fantasy-border mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Quick Rolls</h5>
-                        <div id="quick-rolls">
-                            <div class="dice-group">
-                                <div class="dice-group-label">d4
-                                <button class="btn btn-primary" onclick="rollDice('1d4')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d4')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d4')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d4')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d4')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d4')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">d6
-                                <button class="btn btn-primary" onclick="rollDice('1d6')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d6')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d6')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d6')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d6')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d6')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">d8
-                                <button class="btn btn-primary" onclick="rollDice('1d8')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d8')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d8')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d8')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d8')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d8')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">d10
-                                <button class="btn btn-primary" onclick="rollDice('1d10')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d10')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d10')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d10')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d10')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d10')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">d12
-                                <button class="btn btn-primary" onclick="rollDice('1d12')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d12')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d12')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d12')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d12')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d12')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">d20
-                                <button class="btn btn-primary" onclick="rollDice('1d20')">1</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d20')">2</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d20')">3</button>
-                                <button class="btn btn-primary" onclick="rollDice('4d20')">4</button>
-                                <button class="btn btn-primary" onclick="rollDice('5d20')">5</button>
-                                <button class="btn btn-primary" onclick="rollDice('6d20')">6</button>
-                                </div>
-                            </div>
-                            <div class="dice-group">
-                                <div class="dice-group-label">Specialty Rolls</div>
-                                <button class="btn btn-primary" onclick="rollDice('4d6dl1')">4d6 (drop lowest)</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d10!')">2d10 (exploding)</button>
-                                <button class="btn btn-primary" onclick="rollDice('2d6+6')">2d6+6</button>
-                                <button class="btn btn-primary" onclick="rollDice('3d6x2')">3d6x2</button>
-                                <button class="btn btn-primary" onclick="rollDice('1d100')">1d100</button>
-                                <button class="btn btn-primary" onclick="rollDice('1d20+5')">1d20+5</button>
-                            </div>
-                        </div>
-                    </div>
+      <h1 class="text-center mb-4">Fantasy RPG Dice Roller</h1>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card fantasy-border mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Quick Rolls</h5>
+              <div id="quick-rolls">
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d4
+                    <button class="btn btn-primary" onclick="rollDice('1d4')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d4')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d4')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d4')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d4')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d4')">
+                      6
+                    </button>
+                  </div>
                 </div>
-                <div class="card fantasy-border">
-                    <div class="card-body">
-                        <h5 class="card-title">Saved Rolls</h5>
-                        <div id="custom-buttons"></div>
-                    </div>
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d6
+                    <button class="btn btn-primary" onclick="rollDice('1d6')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d6')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d6')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d6')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d6')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d6')">
+                      6
+                    </button>
+                  </div>
                 </div>
-                <div class="specialty-ops">
-                    <h6>Specialty Operations</h6>
-                    <ul>
-                        <li><strong>kh</strong>: Keep Highest (e.g., 4d6kh3)</li>
-                        <li><strong>dl</strong>: Drop Lowest (e.g., 4d6dl1)</li>
-                        <li><strong>!</strong>: Exploding Dice (e.g., 3d6!)</li>
-                        <li><strong>+/-</strong>: Add/Subtract (e.g., 2d8+5)</li>
-                        <li><strong>x</strong>: Multiply (e.g., 3d6x2)</li>
-                    </ul>
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d8
+                    <button class="btn btn-primary" onclick="rollDice('1d8')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d8')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d8')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d8')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d8')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d8')">
+                      6
+                    </button>
+                  </div>
                 </div>
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d10
+                    <button class="btn btn-primary" onclick="rollDice('1d10')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d10')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d10')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d10')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d10')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d10')">
+                      6
+                    </button>
+                  </div>
+                </div>
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d12
+                    <button class="btn btn-primary" onclick="rollDice('1d12')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d12')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d12')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d12')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d12')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d12')">
+                      6
+                    </button>
+                  </div>
+                </div>
+                <div class="dice-group">
+                  <div class="dice-group-label">
+                    d20
+                    <button class="btn btn-primary" onclick="rollDice('1d20')">
+                      1
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('2d20')">
+                      2
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('3d20')">
+                      3
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('4d20')">
+                      4
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('5d20')">
+                      5
+                    </button>
+                    <button class="btn btn-primary" onclick="rollDice('6d20')">
+                      6
+                    </button>
+                  </div>
+                </div>
+                <div class="dice-group">
+                  <div class="dice-group-label">Specialty Rolls</div>
+                  <button class="btn btn-primary" onclick="rollDice('4d6dl1')">
+                    4d6 (drop lowest)
+                  </button>
+                  <button class="btn btn-primary" onclick="rollDice('2d10!')">
+                    2d10 (exploding)
+                  </button>
+                  <button class="btn btn-primary" onclick="rollDice('2d6+6')">
+                    2d6+6
+                  </button>
+                  <button class="btn btn-primary" onclick="rollDice('3d6x2')">
+                    3d6x2
+                  </button>
+                  <button class="btn btn-primary" onclick="rollDice('1d100')">
+                    1d100
+                  </button>
+                  <button class="btn btn-primary" onclick="rollDice('1d20+5')">
+                    1d20+5
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="col-md-6">
-                <div class="card fantasy-border mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Custom Roll</h5>
-                        <div class="input-group">
-                            <input type="text" id="custom-roll" class="form-control" placeholder="Enter custom roll (e.g., 2d8+3, 4d6kh3, 1d6!)">
-                            <button class="btn btn-success" onclick="rollCustomDice()">Roll Custom Dice</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="result" class="card fantasy-border mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Roll Result
-                            <span class="clear-results" onclick="clearResults()">[x]</span>
-                        </h5>
-                        <div id="roll-details"></div>
-                    </div>
-                </div>
-                <div class="card fantasy-border">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Previous Rolls
-                            <span class="clear-results" onclick="clearPreviousResults()">[x]</span></h5>
-                        <ul id="previous-rolls-list" class="list-group list-group-flush"></ul>
-                    </div>
-                </div>
+          </div>
+          <div class="card fantasy-border">
+            <div class="card-body">
+              <h5 class="card-title">Saved Rolls</h5>
+              <div id="custom-buttons"></div>
             </div>
+          </div>
+          <div class="specialty-ops">
+            <h6>Specialty Operations</h6>
+            <ul>
+              <li><strong>kh</strong>: Keep Highest (e.g., 4d6kh3)</li>
+              <li><strong>dl</strong>: Drop Lowest (e.g., 4d6dl1)</li>
+              <li><strong>!</strong>: Exploding Dice (e.g., 3d6!)</li>
+              <li><strong>+/-</strong>: Add/Subtract (e.g., 2d8+5)</li>
+              <li><strong>x</strong>: Multiply (e.g., 3d6x2)</li>
+            </ul>
+          </div>
         </div>
+        <div class="col-md-6">
+          <div class="card fantasy-border mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Custom Roll</h5>
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="custom-roll"
+                  class="form-control"
+                  placeholder="Enter custom roll (e.g., 2d8+3, 4d6kh3, 1d6!)"
+                />
+                <button class="btn btn-success" onclick="rollCustomDice()">
+                  Roll Custom Dice
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="result" class="card fantasy-border mb-3">
+            <div class="card-body">
+              <h5 class="card-title">
+                Roll Result
+                <span class="clear-results" onclick="clearResults()">[x]</span>
+              </h5>
+              <div id="roll-details"></div>
+            </div>
+          </div>
+          <div class="card fantasy-border">
+            <div class="card-body">
+              <h5 class="card-title">
+                Previous Rolls
+                <span class="clear-results" onclick="clearPreviousResults()"
+                  >[x]</span
+                >
+              </h5>
+              <ul
+                id="previous-rolls-list"
+                class="list-group list-group-flush"
+              ></ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <script>
-        let previousRolls = [];
-        let customRolls = new Set();
-        
-        function loadCustomRolls() {
-            const savedCustomRolls = JSON.parse(sessionStorage.getItem('customRolls')) || [];
-            customRolls = new Set(savedCustomRolls);
-            updateCustomRollButtons();
-        }
-
-        function saveCustomRoll(roll) {
-            if (!customRolls.has(roll) && !isQuickRoll(roll)) {
-                customRolls.add(roll);
-                sessionStorage.setItem('customRolls', JSON.stringify([...customRolls]));
-                updateCustomRollButtons();
-            }
-        }
-
-        function isQuickRoll(roll) {
-            const quickRolls = ['1d4', '2d4', '3d4', '4d4', '5d4', '6d4', 
-                                '1d6', '2d6', '3d6', '4d6', '5d6', '6d6',
-                                '1d8', '2d8', '3d8', '4d8', '5d8', '6d8',
-                                '1d10', '2d10', '3d10', '4d10', '5d10', '6d10',
-                                '1d12', '2d12', '3d12', '4d12', '5d12', '6d12',
-                                '1d20', '2d20', '3d20', '4d20', '5d20', '6d20',
-                                '4d6dl1', '2d10!', '2d6+6', '3d6x2', '1d100', '1d20+5'];
-            return quickRolls.includes(roll);
-        }
-
-        function updateCustomRollButtons() {
-            const customButtons = document.getElementById('custom-buttons');
-            customButtons.innerHTML = '';
-            customRolls.forEach(roll => {
-                const button = document.createElement('button');
-                button.className = 'btn btn-primary';
-                button.textContent = roll;
-                button.onclick = () => rollDice(roll);
-                customButtons.appendChild(button);
-            });
-        }
-
-        function calculateRoll(diceNotation) {
-            const rollRegex = /(\d+)d(\d+)(?:(kh|dl|!)(\d+)?)?(?:\s*([+-x])\s*(\d+))?/i;
-            const match = diceNotation.match(rollRegex);
-
-            if (match) {
-                const [, numDice, numSides, operation, operationValue, modifier, modifierValue] = match;
-                let rolls = [];
-                let total = 0;
-
-                for (let i = 0; i < numDice; i++) {
-                    rolls.push(rollDie(numSides, operation === '!'));
-                }
-
-                if (operation === 'kh') {
-                    const keepCount = operationValue ? parseInt(operationValue) : 1;
-                    rolls.sort((a, b) => b.total - a.total);
-                    total = rolls.slice(0, keepCount).reduce((sum, roll) => sum + roll.total, 0);
-                    rolls.slice(keepCount).forEach(roll => roll.discarded = true);
-                } else if (operation === 'dl') {
-                    const keepCount = numDice - (operationValue ? parseInt(operationValue) : 1);
-                    rolls.sort((a, b) => a.total - b.total);
-                    total = rolls.slice(keepCount).reduce((sum, roll) => sum + roll.total, 0);
-                    rolls.slice(0, numDice - keepCount).forEach(roll => roll.discarded = true);
-                } else {
-                    total = rolls.reduce((sum, roll) => sum + roll.total, 0);
-                }
-
-                if (modifier && modifierValue) {
-                    if (modifier === 'x') {
-                        total *= parseInt(modifierValue);
-                    } else {
-                        total = math.evaluate(`${total} ${modifier} ${modifierValue}`);
-                    }
-                }
-
-                return { total, individualResults: rolls };
-            }
-
-            return { total: "Invalid dice notation", individualResults: [] };
-        }
-
-        function rollDie(sides, exploding = false) {
-            let roll = Math.floor(Math.random() * sides) + 1;
-            let total = roll;
-            let rolls = [roll];
-
-            if (exploding && roll === parseInt(sides)) {
-                while (roll === parseInt(sides)) {
-                    roll = Math.floor(Math.random() * sides) + 1;
-                    total += roll;
-                    rolls.push(roll);
-                }
-            }
-
-            return { total, rolls };
-        }
-
-        function displayResult(diceNotation, total, individualResults) {
-            const resultDiv = document.getElementById('roll-details');
-            let resultHTML = `<p class="mb-2"><strong>${diceNotation}</strong></p>`;
-
-            const numSides = getNumberOfSides(diceNotation);
-
-            individualResults.forEach((result, index) => {
-                const rollClass = getRollClass(result.total, numSides);
-                resultHTML += `<p class="mb-1 ${result.discarded ? 'discarded' : ''}">
-                    ${index + 1}: <strong class="${rollClass}">${result.total}</strong>
-                    ${result.rolls.length > 1 ? `(${result.rolls.join(' + ')})` : ''}
-                    ${result.discarded ? ' (discarded)' : ''}
-                </p>`;
-            });
-
-            resultHTML += `<div class="result-divider"></div>`;
-            resultHTML += `<p class="mt-2"><strong>Total: ${total}</strong></p>`;
-            resultDiv.innerHTML = resultHTML;
-        }
-
-        function rollDice(diceNotation) {
-            const { total, individualResults } = calculateRoll(diceNotation);
-            displayResult(diceNotation, total, individualResults);
-            updatePreviousRolls(diceNotation, total, individualResults);
-        }
-
-        function rollCustomDice() {
-            const customRoll = document.getElementById('custom-roll').value;
-            const { total, individualResults } = calculateRoll(customRoll);
-            displayResult(customRoll, total, individualResults);
-            updatePreviousRolls(customRoll, total, individualResults);
-            saveCustomRoll(customRoll);
-        }
-
-        function updatePreviousRolls(diceNotation, total, individualResults) {
-            previousRolls.unshift({ diceNotation, total, individualResults });
-            if (previousRolls.length > 10) {
-                previousRolls.pop();
-            }
-
-            const previousRollsList = document.getElementById('previous-rolls-list');
-            previousRollsList.innerHTML = '';
-
-            const numSides = getNumberOfSides(diceNotation);
-
-            previousRolls.forEach(roll => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                let rollDetails = `${roll.diceNotation}: `;
-                roll.individualResults.forEach((result, index) => {
-                    const rollClass = getRollClass(result.total, numSides);
-                    if (result.discarded) {
-                        rollDetails += `<span class="discarded"><strong class="${rollClass}">${result.total}</strong></span> `;
-                    } else {
-                        rollDetails += `<strong class="${rollClass}">${result.total}</strong> `;
-                    }
-                });
-                rollDetails += `= <strong>${roll.total}</strong>`;
-                li.innerHTML = rollDetails;
-                previousRollsList.appendChild(li);
-            });
-        }
-
-        function getNumberOfSides(diceNotation) {
-            const match = diceNotation.match(/d(\d+)/i);
-            return match ? parseInt(match[1]) : 0;
-        }
-
-        function getRollClass(roll, numSides) {
-            if (roll === 1) return 'min-roll';
-            if (roll === numSides) return 'max-roll';
-            return '';
-        }
-
-        function clearResults() {
-            const resultDiv = document.getElementById('roll-details');
-            resultDiv.innerHTML = ``;
-        }
-
-        function clearPreviousResults() {
-            const previousRollsList = document.getElementById('previous-rolls-list');
-            previousRollsList.innerHTML = '';
-        }
-
-        window.onload = loadCustomRolls;
-    </script>
-</body>
+    <script type="text/javascript" src="assets/js/roller.js"></script>
+  </body>
 </html>
